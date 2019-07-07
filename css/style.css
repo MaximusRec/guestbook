@@ -1,0 +1,73 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Nunito", sans-serif;
+  min-height: 100vh;
+}
+
+hr {clear: left;}
+td { border: 1px solid black; }
+input:focus {
+  border-color: #ffb499;
+  box-shadow: 1px 1px 2px 0 #ffdfdf;
+}
+
+.imgbox {
+  float:left;
+  margin: 7px 7px 7px 0; /* Отступы вокруг картинки */
+  border-radius: 3px;
+  border: 1px solid #000;
+}
+
+.info { display: inline-block; }
+
+.pagination {
+  display: inline-block;
+  cursor:pointer;
+  background: #ffff81; /* Цвет фона */
+  border-radius: 10px; /* Радиус скругления */
+  padding: 3px;
+  border: 1px solid #000; /* Чёрная рамка */
+}
+
+.box {
+  position:fixed;
+  top: 50%;
+  left: 10%;
+  margin-top: -9em; /*set to a negative number 1/2 of your height*/
+  margin-left: -15em; /*set to a negative number 1/2 of your width*/
+  width: 80%;
+  cursor:pointer;
+  opacity: 0.95; /* Полупрозрачный фон */
+  background: #feffe9; /* Цвет фона */
+  border-radius: 10px; /* Радиус скругления */
+  padding: 3px;
+  margin: 5px  auto;
+  border: 1px solid #000; /* Чёрная рамка */
+}
+
+#upload, #send {
+  padding: 5px;
+  font-weight: bold;
+  text-align: center;
+  background: #f2f2f2;
+  color: #3366cc;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+#close {
+  padding: 5px;
+  font-weight: bold;
+  text-align: center;
+  background: #a5eaf2;
+  color: #000000;
+  border: 1px solid #000000;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#files {
+  padding: 5px;
+}
