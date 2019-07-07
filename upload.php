@@ -30,8 +30,8 @@ if (!in_array($ext, $filetypes)) {
                         require_once("guestBook.php");
                         $obj = new guestBook();
                         $resizeImage = $obj->resize_image($fileResize, $fileEnd);   //  изменяем размер карнтинки и записываем в конечный файл
-                        unlink($file);          //  Удаляем временный файл
-                        unlink($fileResize);     //  Удаляем временный файл
+                        @unlink($file);          //  Удаляем временный файл
+                        @unlink($fileResize);     //  Удаляем временный файл
                         echo $namefile;
                     }
                 }

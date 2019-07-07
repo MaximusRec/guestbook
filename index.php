@@ -81,13 +81,11 @@ $pag= $obj->pagination($colPage, 1);
                         if ( request['login']['error'] == 'yes' ) {
                             $("#infologin").text(request['login']['message']);
                             $("#infologin").css("background", "#ffb698");
-                            $("#login").empty();
                             $("#login").focus();
                             focus = true;
-                        }/* else {
-                            $("#infologin").text("Данные приняты");
-                            $("#infologin").css("background", "#dfffbc");
-                        }*/
+                        } else {
+                            $("#infologin").text('');
+                        }
 
                         if ( request['email']['error'] == 'yes' ) {
                             $("#infoemail").text(request['email']['message']);
@@ -97,18 +95,16 @@ $pag= $obj->pagination($colPage, 1);
                                 $("#email").focus();
                                 focus = true;
                             }
-                        } /*else {
-                            $("#infoemail").text("Данные приняты");
-                            $("#infoemail").css("background", "#dfffbc");
-                        }*/
+                        } else {
+                            $("#infoemail").text('');
+                        }
 
                         if ( request['url']['error'] == 'yes' ) {
                             $("#infourl").text(request['url']['message']);
                             $("#infourl").css("background", "#ffb698");
-                        }/* else {
-                            $("#infourl").text("Данные приняты");
-                            $("#infourl").css("background", "#dfffbc");
-                        }*/
+                        } else {
+                            $("#infourl").text('');
+                        }
 
                         if ( request['texts']['error'] == 'yes' ) {
                             $("#infotexts").text(request['texts']['message']);
@@ -116,12 +112,10 @@ $pag= $obj->pagination($colPage, 1);
                             if ( focus === false )
                             {
                                 $("#texts").focus();
-                                console.log("textarea focus");
                             }
-                        }/* else {
-                            $("#infotexts").text("Данные приняты");
-                            $("#infotexts").css("background", "#dfffbc");
-                        }*/
+                        } else {
+                            $("#infotexts").text('');
+                        }
 
                         if ( request['result']['error'] == 'success' ) {
                             $("#information").text(request['result']['message']);

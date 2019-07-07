@@ -338,6 +338,8 @@ class guestBook
      * @param $width - требуемая ширина изображения
      * @param $height - требуемая высота изображения
      * @return bool|string
+     *
+     * use $this->image_resize($file, $newFile, 320, 240);
      */
     function image_resize($src, $dst, $width, $height){
 
@@ -415,6 +417,162 @@ class guestBook
 
 
 
+
+/**
+ * Функция изменения размеров изображения
+ * @param  $file - file name to resize
+ * @param  $string - The image data, as a string
+ * @param  $width - new image width
+ * @param  $height - new image height
+ * @param  $proportional - keep image proportional, default is no
+ * @param  $output - name of the new file (include path if needed)
+ * @param  $delete_original - if true the original image will be deleted
+ * @param  $use_linux_commands - if set to true will use "rm" to delete the image, if false will use PHP unlink
+ * @param  $quality - enter 1-100 (100 is best quality) default is 100
+ * @param  $grayscale - if true, image will be grayscale (default is false)
+ * @return boolean|resource
+ */
+public function smart_resize_image($file,
+                                   $string             = null,
+                                   $width              = 0,
+                                   $height             = 0,
+                                   $proportional       = false,
+                                   $output             = 'file',
+                                   $delete_original    = true,
+                                   $use_linux_commands = false,
+                                   $quality            = 100,
+                                   $grayscale          = false,
+                                   $debug = false
+) {
+
+if (file_exists ( $file )) {
+    if ($height <= 0 && $width <= 0) return false;
+    if ($file === null && $string === null) return false;
+    # Setting defaults and meta
+    $info = $file !== null ? getimagesize($file) : getimagesizefromstring($string);
+    $image = '';
+    $final_width = 0;
+    $final_height = 0;
+    list($width_old, $height_old) = $info;
+    $cropHeight = $cropWidth = 0;
+    # Calculating proportionality
+    if ($proportional) {
+        $dst_x = $dst_y = 0;
+        $width_ok = $width;
+        $height_ok = $height;
+
+    // resize
+        if      ($width  == 0)  {$ratio = $height / $height_old;}
+        elseif  ($height == 0)  {$ratio = $width / $width_old;}
+        else  {$ratio = min($width / $width_old, $height / $height_old);}
+
+        $final_height = $height_old * $ratio;
+        $final_width = $width_old * $ratio;
+    } else {
+        $final_width = ($width <= 0) ? $width_old : $width;
+        $final_height = ($height <= 0) ? $height_old : $height;
+        $widthX = $width_old / $width;
+        $heightX = $height_old / $height;
+
+        $x = min($widthX, $heightX);
+        $cropWidth = ($width_old - $width * $x) / 2;
+        $cropHeight = ($height_old - $height * $x) / 2;
+    }
+
+    $dst_x = ceil(($width_ok - $final_width) / 2);
+    $dst_y = ceil(($height_ok - $final_height) / 2);
+
+    # Loading image to memory according to type
+    switch ($info[2]) {
+        case IMAGETYPE_JPEG:
+            $file !== null ? $image = imagecreatefromjpeg($file) : $image = imagecreatefromstring($string);
+            break;
+        case IMAGETYPE_GIF:
+            $file !== null ? $image = imagecreatefromgif($file) : $image = imagecreatefromstring($string);
+            break;
+        case IMAGETYPE_PNG:
+            $file !== null ? $image = imagecreatefrompng($file) : $image = imagecreatefromstring($string);
+            break;
+        default:
+            return false;
+    }
+
+    # Making the image grayscale, if needed
+    if ($grayscale) {
+        imagefilter($image, IMG_FILTER_GRAYSCALE);
+    }
+
+    # This is the resizing/resampling/transparency-preserving magic
+    $image_resized = imagecreatetruecolor($width_ok, $height_ok);
+
+    if (($info[2] == IMAGETYPE_GIF) || ($info[2] == IMAGETYPE_PNG)) {
+        imagecolortransparent($image_resized, imagecolorallocatealpha($image_resized, 0, 0, 0, 127)); // создадим белый фон +
+        $white = imagecolorallocate($image_resized, 255, 255, 255);
+        imagefill($image_resized, 0, 0, $white);
+        imagealphablending($image_resized, true);
+        imagesavealpha($image_resized, true);
+    }
+    if ($info[2] == IMAGETYPE_JPEG) {
+        //  белый фон для jpg
+        $white = imagecolorallocate($image_resized, 255, 255, 255);
+        imagefill($image_resized, 0, 0, $white);
+    }
+
+    imagecopyresampled($image_resized, $image, $dst_x, $dst_y, $cropWidth, $cropHeight, $final_width, $final_height, $width_old - 2 * $cropWidth, $height_old - 2 * $cropHeight);
+
+    if ($debug) {
+        //  текст для отладки
+        imagestring($image_resized, 5, 45, 165, "offset [ {$dst_x}px * {$dst_y}px ]", 0x4f2eff);
+        imagestring($image_resized, 6, 45, 185, "original [ {$width_old}px * {$height_old}px ]", 0x4f2eff);
+        imagestring($image_resized, 6, 45, 205, "resize [ {$final_width}px * {$final_height}px ]", 0x4f2eee);
+        imagestring($image_resized, 6, 45, 225, "end size [ {$width_ok}px * {$height_ok}px ]", 0x4f2eee);
+    }
+
+    # Taking care of original, if needed
+    if ($delete_original) {
+        if ($use_linux_commands) exec('rm ' . $file);
+        else @unlink($file);
+    }
+    # Preparing a method of providing result
+    switch (strtolower($output)) {
+        case 'browser':
+            $mime = image_type_to_mime_type($info[2]);
+            header("Content-type: $mime");
+            $output = NULL;
+            break;
+        case 'file':
+            $output = $file;
+            break;
+        case 'return':
+            return $image_resized;
+            break;
+        default:
+            break;
+    }
+
+    # Writing image according to type to the output destination and image quality
+    switch ($info[2]) {
+        case IMAGETYPE_GIF:
+            imagegif($image_resized, $output);
+            break;
+        case IMAGETYPE_JPEG:
+            imagejpeg($image_resized, $output, $quality);
+            break;
+        case IMAGETYPE_PNG:
+            $quality = 9 - (int)((0.9 * $quality) / 10.0);
+            imagepng($image_resized, $output, $quality);
+            break;
+        default:
+            return false;
+    }
+
+    imagedestroy($image_resized, $output, $file);   //  очистка памяти
+
+    return true;
+} else return false;
+}
+
+
     /**
      * Функция уменьшающая изображения до заданного размера в 320 * 240
      * @param $file - файл источник (большое изображение)
@@ -422,8 +580,17 @@ class guestBook
      */
   public function resize_image($file, $newFile)
   {
-      $this->image_resize($file, $newFile, 320, 240);
-
+      $this->smart_resize_image($file,
+                              "",
+                              320,
+                              240,
+                              true,
+                              $newFile,
+                              true,
+                              false,
+                              90,
+                              false,
+                              true);
   }
 
 
