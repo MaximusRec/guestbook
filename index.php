@@ -144,7 +144,6 @@ $pag= $obj->pagination($colPage, 1);
     </script>
 
 </head>
-<img style=' float: right;' src="/uploads/img/gif.gif" alt="">
 <form enctype="multipart/form-data" method="post">
     <h1 style="text-align: center;">Гостевая книга</h1>
 
